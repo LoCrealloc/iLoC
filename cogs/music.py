@@ -223,11 +223,11 @@ class Music(Cog):
                     return
 
                 if controller.isplaying() or controller.ispaused() and reaction.member in controller.connected_users():
-                    if reaction.emoji.name == pausereact:
-                        await controller.pause()
-
-                    elif reaction.emoji.name == resumereact:
-                        await controller.resume()
+                    if reaction.emoji.name == togglepausereact:
+                        if not controller.ispaused():
+                            await controller.pause()
+                        else:
+                            await controller.pause()
 
                     elif reaction.emoji.name == stopreact:
                         await controller.stop()

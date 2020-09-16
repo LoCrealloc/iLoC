@@ -72,7 +72,7 @@ class Settings(Cog):
         with open("customs.json", "w") as channelfile:
             json.dump(customdict, channelfile)
 
-        for react in [pausereact, resumereact, stopreact, skipreact, loopreact, shufflereact]:
+        for react in [togglepausereact, resumereact, stopreact, skipreact, loopreact, shufflereact]:
             await message.add_reaction(react)
 
     @tasks.loop(seconds=5)
