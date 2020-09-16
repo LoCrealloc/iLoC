@@ -41,7 +41,8 @@ async def is_connected(ctx: Context):
     """
     Function to check whether a user is currently connected to a voice channel
     """
-    return ctx.author.voice is True
+
+    return True if ctx.author.voice else False
 
 
 class Music(Cog):
@@ -49,7 +50,7 @@ class Music(Cog):
         self.bot = bot
         self.controllers = {}
 
-    async def play_songs(self, ctx: Context, songs: list):
+    async def play_songs(self, ctx: Context, songs):
         try:
             # Checkt, ob der Bot auf dem Server schon in einem Sprachkanal ist
 
@@ -82,9 +83,9 @@ class Music(Cog):
             controller = AudioController(self.bot, ctx.guild, message, voice)
             self.controllers[str(ctx.guild.id)] = controller
 
-        song = songs[0]
-        await controller.add_to_queue(song, ctx.author)
-        songs.remove(song)
+        for song in songs:
+            song = await get_url(song)
+            await controller.add_to_queue(song, ctx.author)
 
         if not controller.isplaying():
             try:
@@ -98,10 +99,6 @@ class Music(Cog):
                 except KeyError:
                     pass
                 return
-
-        for song in songs:
-            song = await get_url(song)
-            await controller.add_to_queue(song, ctx.author)
 
     @command(name="play", aliases=["p"])
     @guild_only()
@@ -142,9 +139,13 @@ class Music(Cog):
             await message.add_reaction(react)
 
         def check_reaction(reaction: Reaction, user):
-            if not reaction.emoji.name in num_reacts:
-                raise WronReactError
-            return reaction.message.id == message.id and user == message.author
+            if not self.bot.user == user:
+
+                if not str(reaction.emoji) in num_reacts:
+                    raise WronReactError
+                return reaction.message.id == message.id and user.id == ctx.author.id
+            else:
+                return False
 
         try:
             reaction, user = await self.bot.wait_for(event="reaction_add", timeout=30.0, check=check_reaction)
@@ -156,7 +157,7 @@ class Music(Cog):
             print(e)
             return
         else:
-            num = num_meanings[reaction.emoji.name]  # Getted die Zahl des ausgewählten songs aus nem Dict
+            num = num_meanings[str(reaction.emoji)]  # Getted die Zahl des ausgewählten songs aus nem Dict
             await message.delete()
 
         num -= 1  # Für Listen
@@ -227,7 +228,7 @@ class Music(Cog):
                         if not controller.ispaused():
                             await controller.pause()
                         else:
-                            await controller.pause()
+                            await controller.resume()
 
                     elif reaction.emoji.name == stopreact:
                         await controller.stop()

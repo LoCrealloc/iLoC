@@ -92,7 +92,7 @@ async def on_guild_remove(guild: Guild):
             guilddict = {"guilds": []}
             json.dump(guilddict, guildfile)
 
-
+"""
 @bot.event
 async def on_command_error(ctx: Context, error: errors.CommandError):
     if isinstance(error, errors.MissingRequiredArgument):
@@ -116,7 +116,7 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
     else:
         print(error)
         await ctx.channel.send(f"ERROR! For an overview, type {await bot.command_prefix(bot, ctx.message)}help!")
-
+"""
 
 register_cogs(bot, [Information, Settings, Music])
 
