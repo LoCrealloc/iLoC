@@ -22,12 +22,6 @@ manual_url = ""
 togglepausereact = "⏯"
 
 
-pausereact = "⏸"
-
-
-resumereact = "▶"
-
-
 stopreact = "⏹"
 
 

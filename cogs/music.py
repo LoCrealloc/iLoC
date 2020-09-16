@@ -2,7 +2,7 @@ from discord.ext.commands import Cog, command, Bot, Context, guild_only, check
 from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction
 from utilities import get_url, get_video_list, send_warning
 import json
-from data import togglepausereact, resumereact, pausereact, stopreact, skipreact, loopreact, shufflereact, ejectreact, \
+from data import togglepausereact, stopreact, skipreact, loopreact, shufflereact, ejectreact, \
                  num_reacts, num_meanings
 from audio import AudioController
 from errors import NoVideoError, BrokenConnectionError, WronReactError

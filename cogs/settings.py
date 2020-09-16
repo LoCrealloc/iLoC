@@ -3,7 +3,7 @@ from discord.ext import tasks
 from discord import TextChannel, Message, Game, Status
 import json
 from embedcreator import prefixembed, channelembed, musicembed
-from data import togglepausereact, pausereact, resumereact, stopreact, skipreact, loopreact, shufflereact
+from data import togglepausereact, stopreact, skipreact, loopreact, shufflereact
 
 
 class Settings(Cog):
