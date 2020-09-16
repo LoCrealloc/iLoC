@@ -22,12 +22,6 @@ manual_url = ""
 togglepausereact = "⏯"
 
 
-pausereact = "⏸"
-
-
-resumereact = "▶"
-
-
 stopreact = "⏹"
 
 
@@ -53,4 +47,5 @@ num_meanings = {"1️⃣": 1,
                 "6️⃣": 6,
                 "7️⃣": 7,
                 "8️⃣": 8,
-                "9️⃣": 9}
+                "9️⃣": 9
+                }

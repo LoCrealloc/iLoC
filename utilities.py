@@ -62,12 +62,9 @@ async def get_video_list(title: str):
 
     titles = [item["snippet"]["title"] for item in res["items"]]
     creators = [item["snippet"]["channelTitle"] for item in res["items"]]
-    urls = [item["id"]["videoID"] for item in res["items"]]
-    print(json.dumps(res, indent=4))
+    urls = ["https://youtube.com/watch?v=" + item["id"]["videoId"] for item in res["items"]]
 
     data = titlelist(titles, creators, urls)
-
-    print(data)
 
     return data
 

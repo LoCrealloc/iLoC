@@ -151,9 +151,6 @@ class AudioController:
 
 class Track:
     def __init__(self, song_url: str, requester: Member):
-        time1 = time.time()
         self.song = pafy.new(song_url)
-        time2 = time.time()
-        print(time2-time1)
         self.requester = requester
         self.rating = get_rating(song_url)
