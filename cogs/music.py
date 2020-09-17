@@ -104,7 +104,7 @@ class Music(Cog):
     @guild_only()
     @check_channel
     @is_connected
-    async def play(self, ctx: Context):
+    async def play(self, ctx: Context, *args):
         """
         Plays a song in the  channel you are connected to! You can specify multiple songs by
         separating them with a comma
@@ -126,7 +126,7 @@ class Music(Cog):
     @is_connected
     async def search(self, ctx: Context, song: str):
         """
-        Lets the user search a song on youtube
+        Lets you search and play a song on youtube
         """
 
         data = await get_video_list(song)
@@ -249,7 +249,7 @@ class Music(Cog):
                         await controller.shuffle()
 
                     elif reaction.emoji.name == ejectreact:
-                        await controller.remove_from_queue()
+                        await controller.remove_from_queue(controller.current)
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):

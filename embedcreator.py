@@ -87,13 +87,14 @@ def musicembed(bot: Bot):
 def songembed(bot: Bot, track, channel, loop, paused):
     video = track.song
     rating = track.rating
+    requester: Member = track.requester
 
     embed = Embed(title="iLoC",
                   description="Play music in this channel using the *play*-command! You can pause, resume, skip, loop, "
                               "shuffle and stop the music using the reactions below this message! Have fun!",
                   color=color)
 
-    embed.set_author(name=bot.user.display_name, icon_url=bot.user.avatar_url)
+    embed.set_author(name=requester.display_name, icon_url=requester.avatar_url)
 
     embed.set_thumbnail(url=video.thumb)
     embed.add_field(name="Current channel", value=channel, inline=True)

@@ -49,7 +49,6 @@ class AudioController:
             try:
                 track = self.tracks[self.trackindex]
                 song = track.song
-                requester = track.requester
 
                 self.current = track
 
@@ -61,7 +60,7 @@ class AudioController:
                     self.trackindex = 0
                     continue
 
-            embed: Embed = songembed(self.bot, song, self.channel, self.repeat, self.ispaused())
+            embed: Embed = songembed(self.bot, track, self.channel, self.repeat, self.ispaused())
 
             await self.message.edit(embed=embed)
 
