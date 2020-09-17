@@ -7,7 +7,6 @@ from random import shuffle
 from errors import NoVideoError, BrokenConnectionError
 from asyncio import sleep
 from utilities import get_rating
-import time
 
 
 class AudioController:
@@ -22,8 +21,7 @@ class AudioController:
         self.message = message
         self.voice: VoiceClient = voice
         self.tracks: list = []
-        self.current_song = None
-        self.rating = None
+        self.current = None  # Aktueller Track
         self.channel: VoiceChannel = voice.channel
         self.trackindex = 0
         self.repeat: bool = False
@@ -53,8 +51,7 @@ class AudioController:
                 song = track.song
                 requester = track.requester
 
-                self.current_song = song
-                self.rating = track.rating
+                self.current = track
 
             except IndexError:
                 if not self.repeat:
@@ -64,7 +61,7 @@ class AudioController:
                     self.trackindex = 0
                     continue
 
-            embed: Embed = songembed(self.bot, song, self.rating, self.channel, self.repeat, self.ispaused())
+            embed: Embed = songembed(self.bot, song, self.channel, self.repeat, self.ispaused())
 
             await self.message.edit(embed=embed)
 
@@ -100,13 +97,13 @@ class AudioController:
         if self.isplaying():
             self.voice.pause()
 
-            embed = songembed(self.bot, self.current_song, self.rating, self.channel, self.repeat, self.ispaused())
+            embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
             await self.message.edit(embed=embed)
 
     async def resume(self):
         if self.ispaused():
             self.voice.resume()
-            embed = songembed(self.bot, self.current_song, self.rating, self.channel, self.repeat, self.ispaused())
+            embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
             await self.message.edit(embed=embed)
 
     async def skip(self):
@@ -117,12 +114,15 @@ class AudioController:
             return False
 
     async def loop(self):
+        """
+        Lässt den Bot die aktuelle Playlist wiederholen
+        """
         if not self.repeat:
             self.repeat = True
         else:
             self.repeat = False
 
-        embed = songembed(self.bot, self.current_song, self.rating, self.channel, self.repeat, self.ispaused())
+        embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
         await self.message.edit(embed=embed)
 
     async def shuffle(self):
@@ -136,17 +136,22 @@ class AudioController:
         await self.message.edit(embed=embed)
 
     async def display_queue(self):
-        embed = overviewembed(self.tracks, self.current_song, self.bot)
+        embed = overviewembed(self.tracks, self.current.song, self.bot)
         await self.message.edit(embed=embed)
 
         await sleep(len(self.tracks) * 3)  # 3 Sekunden pro track
 
-        embed = songembed(self.bot, self.current_song, self.rating, self.channel, self.repeat, self.ispaused())
+        embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
         await self.message.edit(embed=embed)
 
     async def add_to_queue(self, song, requester):
         video = Track(song, requester)
         self.tracks.append(video)
+
+    async def remove_from_queue(self, track):
+        self.tracks.remove(track)
+        if track == self.current:
+            await self.skip()
 
 
 class Track:

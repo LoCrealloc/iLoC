@@ -84,7 +84,10 @@ def musicembed(bot: Bot):
     return embed
 
 
-def songembed(bot: Bot, video, rating, channel, loop, paused):
+def songembed(bot: Bot, track, channel, loop, paused):
+    video = track.song
+    rating = track.rating
+
     embed = Embed(title="iLoC",
                   description="Play music in this channel using the *play*-command! You can pause, resume, skip, loop, "
                               "shuffle and stop the music using the reactions below this message! Have fun!",
@@ -117,7 +120,7 @@ def overviewembed(songs: list, current, bot: Bot):
                   color=color)
     embed.set_thumbnail(url=bot.user.avatar_url)
     embed.add_field(name="Queue", value="\n".join(["- " + title for title in titlelist]))
-    embed.add_field(name="Current song", value=f"{current.title}")
-    embed.add_field(name="Place in queue", value=f"{titlelist.index(current.title) + 1}")
+    embed.add_field(name="Current song", value=f"{current.song.title}")
+    embed.add_field(name="Place in queue", value=f"{titlelist.index(current.song.title) + 1}")
 
     return embed

@@ -248,6 +248,9 @@ class Music(Cog):
                     elif reaction.emoji.name == shufflereact:
                         await controller.shuffle()
 
+                    elif reaction.emoji.name == ejectreact:
+                        await controller.remove_from_queue()
+
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         if member == self.bot.user:
