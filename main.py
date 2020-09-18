@@ -21,8 +21,8 @@ async def on_ready():
 @tasks.loop(minutes=30)
 async def presence():
     activity: Game = Game(name=f"auf {len(bot.guilds)} Servern")
-
     await bot.change_presence(activity=activity, status=Status.online)
+    await bot.user.edit(deafen=True)
 
 
 @bot.event
