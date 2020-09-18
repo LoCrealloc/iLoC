@@ -85,7 +85,10 @@ class AudioController:
                     return
 
             if not self.repeat:
-                self.tracks.remove(track)
+                try:
+                    self.tracks.remove(track)
+                except ValueError:
+                    pass
             else:
                 self.trackindex += 1
 
@@ -135,12 +138,12 @@ class AudioController:
         await self.message.edit(embed=embed)
 
     async def display_queue(self):
-        embed = overviewembed(self.tracks, self.current.song, self.bot)
+        embed = overviewembed(self.tracks, self.current, self.bot)
         await self.message.edit(embed=embed)
 
         await sleep(len(self.tracks) * 3)  # 3 Sekunden pro track
 
-        embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
+        embed = songembed(self.bot, self.current, self.channel, self.repeat, self.ispaused())
         await self.message.edit(embed=embed)
 
     async def add_to_queue(self, song, requester):
