@@ -2,11 +2,11 @@ from discord import Guild, VoiceChannel, Message, FFmpegPCMAudio, VoiceClient, E
 from discord.errors import ClientException
 from discord.ext.commands import Bot
 import pafy
-from embedcreator import musicembed, songembed, overviewembed
+from embedcreator import musicembed, songembed, overviewembed, lyricembed
 from random import shuffle
 from errors import NoVideoError, BrokenConnectionError
 from asyncio import sleep
-from utilities import get_rating
+from utilities import get_rating, get_lyrics, send_warning
 
 
 class AudioController:
@@ -21,10 +21,13 @@ class AudioController:
         self.message = message
         self.voice: VoiceClient = voice
         self.tracks: list = []
+        self.old_tracks: list = []
         self.current = None  # Aktueller Track
         self.channel: VoiceChannel = voice.channel
         self.trackindex = 0
         self.repeat: bool = False
+        self.onerepeat: bool = False
+        self.lyrics_shown: bool = False
         self.skipper: bool = False
         self.breaker: bool = False
 
@@ -36,6 +39,14 @@ class AudioController:
 
     def ispaused(self):
         if self.voice.is_paused():
+            return True
+        else:
+            return False
+
+    def islooping(self):
+        if self.repeat:
+            return True
+        elif self.onerepeat:
             return True
         else:
             return False
@@ -60,9 +71,7 @@ class AudioController:
                     self.trackindex = 0
                     continue
 
-            embed: Embed = songembed(self.bot, track, self.channel, self.repeat, self.ispaused())
-
-            await self.message.edit(embed=embed)
+            await self.display_normal()
 
             audio = song.getbestaudio()
             try:
@@ -84,13 +93,17 @@ class AudioController:
                 elif self.breaker:
                     return
 
-            if not self.repeat:
+            if self.onerepeat:
+                continue
+            if self.repeat:
+                self.trackindex += 1
+            else:
                 try:
                     self.tracks.remove(track)
+                    self.old_tracks.append(track)
                 except ValueError:
                     pass
-            else:
-                self.trackindex += 1
+                continue
 
         await self.stop()
         return
@@ -99,13 +112,13 @@ class AudioController:
         if self.isplaying():
             self.voice.pause()
 
-            embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
+            embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
             await self.message.edit(embed=embed)
 
     async def resume(self):
         if self.ispaused():
             self.voice.resume()
-            embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
+            embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
             await self.message.edit(embed=embed)
 
     async def skip(self):
@@ -124,7 +137,20 @@ class AudioController:
         else:
             self.repeat = False
 
-        embed = songembed(self.bot, self.current.song, self.channel, self.repeat, self.ispaused())
+        self.onerepeat = False
+
+        embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
+        await self.message.edit(embed=embed)
+
+    async def oneloop(self):
+        if not self.onerepeat:
+            self.onerepeat = True
+        else:
+            self.onerepeat = False
+
+        self.repeat = False
+
+        embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
         await self.message.edit(embed=embed)
 
     async def shuffle(self):
@@ -143,7 +169,23 @@ class AudioController:
 
         await sleep(len(self.tracks) * 3)  # 3 Sekunden pro track
 
-        embed = songembed(self.bot, self.current, self.channel, self.repeat, self.ispaused())
+        await self.display_normal()
+
+    async def display_lyrics(self):
+        self.lyrics_shown = True
+
+        await send_warning(self.message.channel, "```This may take a few seconds...```")
+
+        lyrics, url = get_lyrics(self.current.song.title)
+
+        embed = lyricembed(self.current, lyrics, url)
+
+        await self.message.edit(embed=embed)
+
+    async def display_normal(self):
+        self.lyrics_shown = False
+
+        embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
         await self.message.edit(embed=embed)
 
     async def add_to_queue(self, song, requester):

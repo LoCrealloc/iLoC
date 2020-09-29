@@ -1,6 +1,7 @@
 from discord.ext.commands import Bot, Context
 from discord import Embed, TextChannel, Member
 from data import color, manual_url, version, features, loc_mention
+from textwrap import TextWrapper
 
 
 async def infoembed(bot: Bot, message):
@@ -48,7 +49,7 @@ def listembed(member: Member, search: str, titles: list, creators: list):
                   description=f"The results for {member.mention}'s search for {search}",
                   color=color)
 
-    embed.set_author(name=member.display_name, url=member.avatar_url)
+    embed.set_author(name=member.display_name, icon_url=member.avatar_url)
 
     for i in range(len(titles)):
         title = titles[i]
@@ -84,7 +85,7 @@ def musicembed(bot: Bot):
     return embed
 
 
-def songembed(bot: Bot, track, channel, loop, paused):
+def songembed(track, channel, loop, paused):
     video = track.song
     rating = track.rating
     requester: Member = track.requester
@@ -123,5 +124,25 @@ def overviewembed(songs: list, current, bot: Bot):
     embed.add_field(name="Queue", value="\n".join(["- " + title for title in titlelist]))
     embed.add_field(name="Current song", value=f"{current.song.title}")
     embed.add_field(name="Place in queue", value=f"{titlelist.index(current.song.title) + 1}")
+
+    return embed
+
+
+def lyricembed(track, lyrics: str, lyric_url: str):
+    video = track.song
+    requester: Member = track.requester
+
+    wrapper = TextWrapper(width=2040, replace_whitespace=False, placeholder="[...]")
+
+    newlyrics = wrapper.wrap(lyrics)[0]
+
+    embed = Embed(title=f"Lyrics for {video.title}",
+                  url=lyric_url,
+                  description=newlyrics if len(lyrics) <= 2048 else newlyrics + "\n[...]",
+                  color=color)
+
+    embed.set_author(name=requester.display_name, url="https://genius.com", icon_url=requester.avatar_url)
+    embed.set_thumbnail(url=video.thumb)
+    embed.set_footer(text="Lyrics provided by https://genius.com")
 
     return embed

@@ -2,8 +2,8 @@ from discord.ext.commands import Cog, command, Bot, Context, guild_only, check
 from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction
 from utilities import get_url, get_video_list, send_warning
 import json
-from data import togglepausereact, stopreact, skipreact, loopreact, shufflereact, ejectreact, \
-                 num_reacts, num_meanings
+from data import togglepausereact, stopreact, skipreact, loopreact, oneloopreact, \
+                 shufflereact, ejectreact, lyricreact, num_reacts, num_meanings
 from audio import AudioController
 from errors import NoVideoError, BrokenConnectionError, WronReactError
 from embedcreator import listembed
@@ -124,10 +124,12 @@ class Music(Cog):
     @guild_only()
     @check_channel
     @is_connected
-    async def search(self, ctx: Context, song: str):
+    async def search(self, ctx: Context, *song):
         """
         Lets you search and play a song on youtube
         """
+
+        song = " ".join(song)
 
         data = await get_video_list(song)
 
@@ -245,11 +247,20 @@ class Music(Cog):
                     elif reaction.emoji.name == loopreact:
                         await controller.loop()
 
+                    elif reaction.emoji.name == oneloopreact:
+                        await controller.oneloop()
+
                     elif reaction.emoji.name == shufflereact:
                         await controller.shuffle()
 
                     elif reaction.emoji.name == ejectreact:
                         await controller.remove_from_queue(controller.current)
+
+                    elif reaction.emoji.name == lyricreact:
+                        if not controller.lyrics_shown:
+                            await controller.display_lyrics()
+                        else:
+                            await controller.display_normal()
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):

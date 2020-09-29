@@ -1,7 +1,7 @@
 import json
 from discord.ext.commands import Bot, errors, Context
 from discord.ext import tasks
-from apikeys import token
+from apikeys import TOKEN
 from data import joinmessage
 from discord import Status, Game, Message, Guild
 from cogs.information import Information
@@ -119,4 +119,4 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
 
 register_cogs(bot, [Information, Settings, Music])
 
-bot.run(token)
+bot.run(TOKEN)

@@ -2,11 +2,12 @@ from discord import Message, TextChannel
 from discord.ext.commands import Bot
 import json
 from data import default_prefix
-from apikeys import google_key
+from apikeys import GOOGLEKEY, GENIUSKEY
 from googleapiclient import discovery
 from asyncio import sleep
 import requests
 from collections import namedtuple
+from bs4 import BeautifulSoup
 
 
 API_NAME = "youtube"
@@ -46,7 +47,7 @@ async def get_custom_prefix(client: Bot, message: Message):
 
 
 async def get_url(title: str):
-    youtube = discovery.build(API_NAME, API_VERSION, developerKey=google_key)
+    youtube = discovery.build(API_NAME, API_VERSION, developerKey=GOOGLEKEY)
     req = youtube.search().list(q=title, part='snippet', type='video', maxResults=1, pageToken=None)
     res = req.execute()
     video_id = res["items"][0]["id"]["videoId"]
@@ -54,7 +55,7 @@ async def get_url(title: str):
 
 
 async def get_video_list(title: str):
-    youtube = discovery.build(API_NAME, API_VERSION, developerKey=google_key)
+    youtube = discovery.build(API_NAME, API_VERSION, developerKey=GOOGLEKEY)
     req = youtube.search().list(q=title, part='snippet', type='video', maxResults=10, pageToken=None)
     res = req.execute()
 
@@ -93,6 +94,46 @@ def get_rating(video_url):
     return data
 
 
+def get_lyrics(title: str):
+
+    url = f"https://api.genius.com/search?q={title}&access_token={GENIUSKEY}"
+
+    res = requests.get(url=url)
+
+    try:
+        song_id = res.json()["response"]["hits"][0]["result"]["api_path"]
+    except IndexError:
+        print(res.json())
+        return "No Lyrics provided for this song, but that is not my fault!", "https://genius.com"
+
+    for i in res.json()["response"]["hits"]:
+        print(i["result"]["full_title"])
+
+    url = f"https://api.genius.com{song_id}?access_token={GENIUSKEY}"
+
+    res = requests.get(url)
+
+    lyrics_url = "https://genius.com" + res.json()["response"]["song"]["path"]
+
+    while True:
+        try:
+            res = requests.get(url=lyrics_url)
+
+            soup = BeautifulSoup(res.text, "html.parser")
+
+            classes = soup.find('div', class_='lyrics')
+            lyrics = classes.get_text()
+            break
+        except AttributeError:
+            pass
+
+    return lyrics, lyrics_url
+
+
 def register_cogs(bot: Bot, cogs: list):
     for cog in cogs:
         bot.add_cog(cog(bot))
+
+
+if __name__ == '__main__':
+    get_lyrics("alone official music video")
