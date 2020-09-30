@@ -3,7 +3,8 @@ from discord.ext import tasks
 from discord import TextChannel, Message, Game, Status
 import json
 from embedcreator import prefixembed, channelembed, musicembed
-from data import togglepausereact, stopreact, skipreact, loopreact, oneloopreact, shufflereact, ejectreact, lyricreact
+from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, shufflereact, ejectreact, \
+                 lyricreact
 
 
 class Settings(Cog):
@@ -72,8 +73,8 @@ class Settings(Cog):
         with open("customs.json", "w") as channelfile:
             json.dump(customdict, channelfile)
 
-        for react in [togglepausereact, stopreact, skipreact, loopreact, oneloopreact, shufflereact, ejectreact,
-                      lyricreact]:
+        for react in [togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, shufflereact,
+                      ejectreact, lyricreact]:
             await message.add_reaction(react)
 
     @tasks.loop(seconds=5)

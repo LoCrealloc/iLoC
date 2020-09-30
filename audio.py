@@ -21,7 +21,7 @@ class AudioController:
         self.message = message
         self.voice: VoiceClient = voice
         self.tracks: list = []
-        self.old_tracks: list = []
+        self.old_track = Track
         self.current = None  # Aktueller Track
         self.channel: VoiceChannel = voice.channel
         self.trackindex = 0
@@ -29,6 +29,7 @@ class AudioController:
         self.onerepeat: bool = False
         self.lyrics_shown: bool = False
         self.skipper: bool = False
+        self.goback: bool = False
         self.breaker: bool = False
 
     def isplaying(self):
@@ -92,6 +93,10 @@ class AudioController:
                     break
                 elif self.breaker:
                     return
+                elif self.goback:
+                    self.tracks.append(self.old_track)
+                    self.trackindex += 1
+                    continue
 
             if self.onerepeat:
                 continue
@@ -100,7 +105,7 @@ class AudioController:
             else:
                 try:
                     self.tracks.remove(track)
-                    self.old_tracks.append(track)
+                    self.old_track = track
                 except ValueError:
                     pass
                 continue
@@ -124,6 +129,13 @@ class AudioController:
     async def skip(self):
         if len(self.tracks) > 0:
             self.skipper = True
+            return True
+        else:
+            return False
+
+    async def back(self):
+        if self.old_track:
+            self.goback = True
             return True
         else:
             return False

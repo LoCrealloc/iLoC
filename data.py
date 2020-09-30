@@ -28,6 +28,9 @@ stopreact = "⏹"
 skipreact = "⏭"
 
 
+backreact = "⏮"
+
+
 loopreact = "🔁"
 
 

@@ -2,7 +2,7 @@ from discord.ext.commands import Cog, command, Bot, Context, guild_only, check
 from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction
 from utilities import get_url, get_video_list, send_warning
 import json
-from data import togglepausereact, stopreact, skipreact, loopreact, oneloopreact, \
+from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, \
                  shufflereact, ejectreact, lyricreact, num_reacts, num_meanings
 from audio import AudioController
 from errors import NoVideoError, BrokenConnectionError, WronReactError
@@ -243,6 +243,10 @@ class Music(Cog):
                     elif reaction.emoji.name == skipreact:
                         if not await controller.skip():
                             await send_warning(message.channel, "```There are no other songs in the queue!```")
+
+                    elif reaction.emoji.name == backreact:
+                        if not await controller.back():
+                            await send_warning(message.channel, "```There is no song played before!```")
 
                     elif reaction.emoji.name == loopreact:
                         await controller.loop()
