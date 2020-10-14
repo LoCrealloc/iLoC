@@ -1,10 +1,10 @@
-from discord.ext.commands import Cog, command, Bot, has_permissions, Context, guild_only
+from discord.ext.commands import Cog, command, Bot, has_permissions, Context, guild_only, group
 from discord.ext import tasks
 from discord import TextChannel, Message, Game, Status
 import json
 from embedcreator import prefixembed, channelembed, musicembed
 from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, shufflereact, ejectreact, \
-                 lyricreact
+                 lyricreact, redheart, blackheart
 
 
 class Settings(Cog):
@@ -12,12 +12,18 @@ class Settings(Cog):
         self.bot = bot
         self.presence.start()
 
-    @command(name="prefix")
+    @group(name="settings", aliases=["preferences", "set"])
+    async def settings(self, ctx: Context):
+        """
+        Change the bots references
+        """
+
+    @settings.command(name="prefix")
     @has_permissions(manage_channels=True)
     @guild_only()
     async def prefix(self, ctx: Context, prefix: str):
         """
-        Set the bot's prefix
+        Set the bots prefix
         """
 
         if prefix:
@@ -44,12 +50,12 @@ class Settings(Cog):
 
         await ctx.channel.send(embed=embed)
 
-    @command(name="channel", aliases=["set_channel", "music_channel", "set_music_channel"])
+    @settings.command(name="channel", aliases=["set_channel", "music_channel", "set_music_channel"])
     @has_permissions(manage_channels=True)
     @guild_only()
     async def channel(self, ctx: Context, channel: TextChannel):
         """
-        Set the channel where the user can control the bot's music functions
+        Set the channel where the user can control the bots music functions
         """
         with open("customs.json", "r") as channelfile:
             customdict: dict = json.load(channelfile)
@@ -73,8 +79,8 @@ class Settings(Cog):
         with open("customs.json", "w") as channelfile:
             json.dump(customdict, channelfile)
 
-        for react in [togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, shufflereact,
-                      ejectreact, lyricreact]:
+        for react in [backreact, togglepausereact, skipreact, stopreact, loopreact, oneloopreact, shufflereact,
+                      ejectreact, lyricreact, redheart, blackheart]:
             await message.add_reaction(react)
 
     @tasks.loop(seconds=5)
