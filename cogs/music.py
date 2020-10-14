@@ -1,13 +1,14 @@
-from discord.ext.commands import Cog, command, Bot, Context, guild_only, check
+from discord.ext.commands import Cog, command, Bot, Context, guild_only, check, group
 from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction
 from utilities import get_url, get_video_list, send_warning
 import json
 from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, \
-                 shufflereact, ejectreact, lyricreact, num_reacts, num_meanings
+                 shufflereact, ejectreact, lyricreact, blackheart, redheart, num_reacts, num_meanings
 from audio import AudioController
 from errors import NoVideoError, BrokenConnectionError, WronReactError
-from embedcreator import listembed
+from embedcreator import listembed, playlistembed
 from asyncio import TimeoutError
+from utilities import save_favourites, load_favourites, get_title
 
 
 @check
@@ -25,6 +26,8 @@ async def check_channel(ctx: Context):
 
             except KeyError:
                 return False
+            except AttributeError:
+                return True
 
     except FileNotFoundError:
         print("NoFileError")
@@ -33,6 +36,7 @@ async def check_channel(ctx: Context):
     if playchannel_id == ctx.channel.id:
         return True
     else:
+        await ctx.message.delete()
         return False
 
 
@@ -64,9 +68,13 @@ class Music(Cog):
 
         except IndexError:
             # Der Bot tritt einem Kanal bei, falls er noch mit keinem verbunden ist
-            voice = await ctx.author.voice.channel.connect()
+            try:
+                voice = await ctx.author.voice.channel.connect()
+            except AttributeError:
+                await send_warning(ctx.channel, "```You are not connected to a voice channel!```")
+                return
 
-        playchannel: TextChannel = self.bot.get_channel(ctx.channel.id)
+        playchannel: TextChannel = ctx.channel
         # playchannel = Der Kanal, der für den Bot festgelegt wurde
 
         with open("customs.json", "r") as customsfile:
@@ -80,12 +88,12 @@ class Music(Cog):
             # Erhält den AudioController aus dem Dictionary von Controllers
         except KeyError:
             # Wenn kein Audiocontroller -> Audiocontroller wird erstellt
-            controller = AudioController(self.bot, ctx.guild, message, voice)
+            controller = AudioController(self.bot, message, voice)
             self.controllers[str(ctx.guild.id)] = controller
 
         for song in songs:
-            song = await get_url(song)
-            await controller.add_to_queue(song, ctx.author)
+            url = await get_url(song)
+            await controller.add_to_queue(url, ctx.author, song)
 
         if not controller.isplaying():
             try:
@@ -104,7 +112,7 @@ class Music(Cog):
     @guild_only()
     @check_channel
     @is_connected
-    async def play(self, ctx: Context, *args):
+    async def play(self, ctx: Context):
         """
         Plays a song in the  channel you are connected to! You can specify multiple songs by
         separating them with a comma
@@ -159,10 +167,10 @@ class Music(Cog):
             print(e)
             return
         else:
-            num = num_meanings[str(reaction.emoji)]  # Getted die Zahl des ausgewählten songs aus nem Dict
+            num = num_meanings[str(reaction.emoji)]  # Getted die Position des ausgewählten songs aus nem Dict
             await message.delete()
 
-        num -= 1  # Für Listen
+        num -= 1  # Für Listen, muss verbessert werden!
 
         song = data.urls[num]
 
@@ -193,6 +201,64 @@ class Music(Cog):
             await send_warning(ctx.channel, f"```Please use only the channel specified for this bot "
                                             f"({controller.message.channel.mention}) for music commands```")
             await ctx.message.delete()
+
+    @group(name="playlist", aliases=["pl", "tracklist", "favourites"])
+    async def playlist(self, ctx: Context):
+        """
+        Add songs to your playlist with playlist add (songs) or by  reacting with a heart when they are currently played
+        """
+
+    @playlist.command(name="show", aliases=["display"])
+    async def playlist_show(self, ctx: Context):
+        """
+        Watch the tracks you have saved to your playlist
+        """
+        favourites = load_favourites(ctx.author.id)
+        embed = playlistembed(favourites, ctx.author)
+        await ctx.author.send(embed=embed)
+
+    @playlist.command(name="clear", aliases=["delete"])
+    async def playlist_clear(self, ctx: Context):
+        """
+        Removes all songs from your playlist
+        """
+        await save_favourites(ctx.author.id, [])
+        await ctx.author.send("All songs have been cleared from your playlist ✅")
+
+    @playlist.command(name="add", alisases=["append"])
+    async def playlist_add(self, ctx: Context):
+        favourites = load_favourites(ctx.author.id)
+        bot_prefix = await self.bot.command_prefix(self.bot, ctx.message)
+
+        try:
+            parts = ctx.message.content.split(f"{bot_prefix}playlist add ")
+            songs = parts[1].split(",")
+        except IndexError:
+            await send_warning(ctx.channel, "```You must specify at least one song!```")
+            return
+
+        if len(songs + favourites) <= 5:
+            song_videos = []
+            for song in songs:
+                song_videos.append(await get_title(song))
+
+            await save_favourites(ctx.author.id, favourites + song_videos)
+
+            await ctx.author.send(f"Added {len(songs)} {'songs' if len(favourites) > 1 else 'song'} to your playlist ✅")
+
+        else:
+            await ctx.author.send("You can only save 5 songs to your playlist, sorry!")
+
+    @playlist.command(name="play", aliases=["start"])
+    @guild_only()
+    async def playlist_play(self, ctx: Context):
+        favourites = load_favourites(ctx.author.id)
+
+        await send_warning(ctx.channel, f"```{len(favourites)} "
+                                        f"{'songs' if len(favourites) > 1 or len(favourites) == 0 else 'song'} "
+                                        f"were added to the queue!```")
+
+        await self.play_songs(ctx, favourites)
 
     @Cog.listener()
     @guild_only()
@@ -225,7 +291,7 @@ class Music(Cog):
                 except KeyError:
                     return
 
-                if controller.isplaying() or controller.ispaused() and reaction.member in controller.connected_users():
+                if reaction.member in controller.connected_users():
                     if reaction.emoji.name == togglepausereact:
                         if not controller.ispaused():
                             await controller.pause()
@@ -234,6 +300,7 @@ class Music(Cog):
 
                     elif reaction.emoji.name == stopreact:
                         await controller.stop()
+
                         del controller
                         try:
                             del self.controllers[str(reaction.guild_id)]
@@ -265,6 +332,41 @@ class Music(Cog):
                             await controller.display_lyrics()
                         else:
                             await controller.display_normal()
+
+                    elif reaction.emoji.name == redheart:
+
+                        favourites: list = load_favourites(reaction.member.id)
+                        song_title = controller.current.song.title
+
+                        if song_title not in favourites:
+                            if len(favourites) < 5:
+                                favourites.append(song_title)
+                                await save_favourites(reaction.member.id, favourites)
+                                await send_warning(self.bot.get_channel(reaction.channel_id), "✅")
+
+                            else:
+                                await send_warning(self.bot.get_channel(reaction.channel_id),
+                                                   "```You can only save 5 songs to your playlist, sorry!```")
+                        else:
+                            await send_warning(self.bot.get_channel(reaction.channel_id),
+                                               "```You have already given this song in your playlist!```")
+
+                    elif reaction.emoji.name == blackheart:
+                        favourites = load_favourites(reaction.member.id)
+                        song_title = controller.current.song.title
+
+                        if song_title in favourites:
+                            favourites.remove(song_title)
+                            await save_favourites(reaction.member.id, favourites)
+                            await send_warning(self.bot.get_channel(reaction.channel_id), "✅")
+                        else:
+                            await send_warning(self.bot.get_channel(reaction.channel_id),
+                                               "```This song is not saved in your playlist yet!```")
+
+                else:
+                    await send_warning(self.bot.get_channel(reaction.channel_id),
+                                       f"```You have to be connected to the voice channel the bot is "
+                                       f"connected to ({controller.channel})```")
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):

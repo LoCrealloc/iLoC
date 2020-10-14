@@ -40,11 +40,15 @@ async def on_message(message: Message):
 
                     await message.delete()
 
-                await bot.process_commands(message)
-                return
+                    if message.startswith(await bot.command_prefix(bot, message) + "help"):
+                        await send_warning(message.channel, "Please use another channel for the help command!")
+                        return
 
             except KeyError:
                 print("KeyError")
+
+            except AttributeError:
+                pass
 
         except FileNotFoundError:
             print("NoFileError")

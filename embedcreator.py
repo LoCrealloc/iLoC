@@ -146,3 +146,20 @@ def lyricembed(track, lyrics: str, lyric_url: str):
     embed.set_footer(text="Lyrics provided by https://genius.com")
 
     return embed
+
+
+def playlistembed(favourites: list, user: Member):
+    embed = Embed(title=f"Playlist for {user.display_name}",
+                  description=f"You have saved {len(favourites)} "
+                              f"{'songs' if len(favourites) > 1 or len(favourites) == 0 else 'song'} "
+                              f"to your playlist!",
+                  color=color)
+
+    embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+
+    for song in favourites:
+        embed.add_field(name=f"Song #{favourites.index(song) + 1}", value=song, inline=False)
+
+    embed.set_footer(text="You can add 5 Songs to your playlist!")
+
+    return embed

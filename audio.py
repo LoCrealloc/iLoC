@@ -1,4 +1,4 @@
-from discord import Guild, VoiceChannel, Message, FFmpegPCMAudio, VoiceClient, Embed, Member
+from discord import VoiceChannel, Message, FFmpegPCMAudio, PCMVolumeTransformer, VoiceClient, Embed, Member
 from discord.errors import ClientException
 from discord.ext.commands import Bot
 import pafy
@@ -15,10 +15,10 @@ class AudioController:
         'options': '-vn',
     }
 
-    def __init__(self, bot: Bot, guild: Guild, message: Message, voice: VoiceClient):
+    def __init__(self, bot: Bot, message: Message, voice: VoiceClient):
         self.bot = bot
-        self.guild = guild
         self.message = message
+        self.guild = self.message.guild
         self.voice: VoiceClient = voice
         self.tracks: list = []
         self.old_track = Track
@@ -56,7 +56,7 @@ class AudioController:
         return self.channel.members
 
     async def play(self):
-        while self.tracks:
+        while self.tracks and len(self.connected_users()) > 1:
 
             try:
                 track = self.tracks[self.trackindex]
@@ -80,6 +80,7 @@ class AudioController:
             except AttributeError:
                 raise NoVideoError
             source = FFmpegPCMAudio(audio_url, **self.FFMPEG_OPTIONS)
+            source = PCMVolumeTransformer(source)
             try:
                 self.voice.play(source)
             except ClientException:
@@ -188,7 +189,7 @@ class AudioController:
 
         await send_warning(self.message.channel, "```This may take a few seconds...```")
 
-        lyrics, url = get_lyrics(self.current.song.title)
+        lyrics, url = get_lyrics(self.current.request_term)
 
         embed = lyricembed(self.current, lyrics, url)
 
@@ -200,8 +201,8 @@ class AudioController:
         embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
         await self.message.edit(embed=embed)
 
-    async def add_to_queue(self, song, requester):
-        video = Track(song, requester)
+    async def add_to_queue(self, song, requester, term):
+        video = Track(song, requester, term)
         self.tracks.append(video)
 
     async def remove_from_queue(self, track):
@@ -211,7 +212,14 @@ class AudioController:
 
 
 class Track:
-    def __init__(self, song_url: str, requester: Member):
-        self.song = pafy.new(song_url)
+    def __init__(self, song_url: str, requester: Member, request_term: str):
+        while True:
+            try:
+                self.song = pafy.new(song_url)
+            except OSError:
+                pass
+            else:
+                break
         self.requester = requester
+        self.request_term = request_term
         self.rating = get_rating(song_url)

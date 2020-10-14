@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 API_NAME = "youtube"
 API_VERSION = "v3"
 
+YOUTUBE = discovery.build(API_NAME, API_VERSION, developerKey=GOOGLEKEY)
+
 
 async def get_custom_prefix(client: Bot, message: Message):
     guild = message.guild
@@ -47,16 +49,22 @@ async def get_custom_prefix(client: Bot, message: Message):
 
 
 async def get_url(title: str):
-    youtube = discovery.build(API_NAME, API_VERSION, developerKey=GOOGLEKEY)
-    req = youtube.search().list(q=title, part='snippet', type='video', maxResults=1, pageToken=None)
+    req = YOUTUBE.search().list(q=title, part='snippet', type='video', maxResults=1, pageToken=None)
     res = req.execute()
     video_id = res["items"][0]["id"]["videoId"]
     return f"https://youtube.com/watch?v={video_id}"
 
 
+async def get_title(term: str):
+    req = YOUTUBE.search().list(q=term, part='snippet', type='video', maxResults=1, pageToken=None)
+    res = req.execute()
+    video_title = res["items"][0]["snippet"]["title"]
+
+    return video_title
+
+
 async def get_video_list(title: str):
-    youtube = discovery.build(API_NAME, API_VERSION, developerKey=GOOGLEKEY)
-    req = youtube.search().list(q=title, part='snippet', type='video', maxResults=10, pageToken=None)
+    req = YOUTUBE.search().list(q=title, part='snippet', type='video', maxResults=10, pageToken=None)
     res = req.execute()
 
     titlelist = namedtuple("titles", ["titles", "creators", "urls"])
@@ -74,6 +82,48 @@ async def send_warning(channel: TextChannel, message: str):
     delmessage = await channel.send(message)
     await sleep(5)
     await delmessage.delete()
+
+
+def load_dict():
+    try:
+        with open("customs.json", "r") as customsfile:
+            customdict = json.load(customsfile)
+            return customdict
+
+    except FileNotFoundError:
+        return {}
+
+
+def load_favourites(user_id: int):
+    try:
+        with open("favourites.json", "r") as customsfile:
+            try:
+                favouritesdict = json.load(customsfile)
+                favourites = favouritesdict[str(user_id)]
+            except Exception as e:
+                print(e)
+                favourites = []
+            return favourites
+
+    except FileNotFoundError:
+        return []
+
+
+async def save_favourites(user_id: int, favourites: list):
+    try:
+        with open("favourites.json", "r") as customsfile:
+            try:
+                favouritedict = json.load(customsfile)
+            except json.decoder.JSONDecodeError:
+                favouritedict = {}
+
+    except FileNotFoundError:
+        favouritedict = {}
+
+    favouritedict[str(user_id)] = favourites
+
+    with open("favourites.json", "w") as customsfile:
+        json.dump(favouritedict, customsfile)
 
 
 def get_rating(video_url):
@@ -95,6 +145,7 @@ def get_rating(video_url):
 
 
 def get_lyrics(title: str):
+    title = title.replace(" ", "%20")
 
     url = f"https://api.genius.com/search?q={title}&access_token={GENIUSKEY}"
 
@@ -105,9 +156,6 @@ def get_lyrics(title: str):
     except IndexError:
         print(res.json())
         return "No Lyrics provided for this song, but that is not my fault!", "https://genius.com"
-
-    for i in res.json()["response"]["hits"]:
-        print(i["result"]["full_title"])
 
     url = f"https://api.genius.com{song_id}?access_token={GENIUSKEY}"
 
@@ -121,7 +169,7 @@ def get_lyrics(title: str):
 
             soup = BeautifulSoup(res.text, "html.parser")
 
-            classes = soup.find('div', class_='lyrics')
+            classes = soup.find('div', class_="lyrics")
             lyrics = classes.get_text()
             break
         except AttributeError:
@@ -136,4 +184,4 @@ def register_cogs(bot: Bot, cogs: list):
 
 
 if __name__ == '__main__':
-    get_lyrics("alone official music video")
+    print(get_lyrics("avicii sos"))
