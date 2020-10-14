@@ -21,7 +21,7 @@ class Settings(Cog):
     @settings.command(name="prefix")
     @has_permissions(manage_channels=True)
     @guild_only()
-    async def prefix(self, ctx: Context, prefix: str):
+    async def settings_prefix(self, ctx: Context, prefix: str):
         """
         Set the bots prefix
         """
@@ -53,7 +53,7 @@ class Settings(Cog):
     @settings.command(name="channel", aliases=["set_channel", "music_channel", "set_music_channel"])
     @has_permissions(manage_channels=True)
     @guild_only()
-    async def channel(self, ctx: Context, channel: TextChannel):
+    async def settings_channel(self, ctx: Context, channel: TextChannel):
         """
         Set the channel where the user can control the bots music functions
         """
