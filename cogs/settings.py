@@ -2,7 +2,7 @@ from discord.ext.commands import Cog, command, Bot, has_permissions, Context, gu
 from discord.ext import tasks
 from discord import TextChannel, Message, Game, Status
 import json
-from embedcreator import prefixembed, channelembed, musicembed
+from embedcreator import prefixembed, channelembed, musicembed, settingsembed
 from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, shufflereact, ejectreact, \
                  lyricreact, redheart, blackheart
 
@@ -15,8 +15,12 @@ class Settings(Cog):
     @group(name="settings", aliases=["preferences", "set"])
     async def settings(self, ctx: Context):
         """
-        Change the bots references
+        Change the bots preferences
         """
+
+        if ctx.invoked_subcommand is None:
+            embed = settingsembed(self.bot, await self.bot.command_prefix(self.bot, ctx.message))
+            await ctx.channel.send(embed=embed)
 
     @settings.command(name="prefix")
     @has_permissions(manage_channels=True)

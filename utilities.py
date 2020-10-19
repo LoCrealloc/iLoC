@@ -80,7 +80,7 @@ async def get_video_list(title: str):
 
 async def send_warning(channel: TextChannel, message: str):
     delmessage = await channel.send(message)
-    await sleep(5)
+    await sleep(7)
     await delmessage.delete()
 
 

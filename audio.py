@@ -21,7 +21,7 @@ class AudioController:
         self.guild = self.message.guild
         self.voice: VoiceClient = voice
         self.tracks: list = []
-        self.old_track = Track
+        self.old_tracks: list = []
         self.current = None  # Aktueller Track
         self.channel: VoiceChannel = voice.channel
         self.trackindex = 0
@@ -76,10 +76,10 @@ class AudioController:
 
             audio = song.getbestaudio()
             try:
-                audio_url = audio.url
+                audio.url
             except AttributeError:
                 raise NoVideoError
-            source = FFmpegPCMAudio(audio_url, **self.FFMPEG_OPTIONS)
+            source = FFmpegPCMAudio(audio.url, **self.FFMPEG_OPTIONS)
             source = PCMVolumeTransformer(source)
             try:
                 self.voice.play(source)
@@ -95,18 +95,25 @@ class AudioController:
                 elif self.breaker:
                     return
                 elif self.goback:
-                    self.tracks.append(self.old_track)
-                    self.trackindex += 1
-                    continue
+                    pos = self.tracks.index(self.current)
+                    old_track = self.old_tracks[len(self.old_tracks)-1]
+                    self.tracks = self.tracks[0:pos] + [old_track] + self.tracks[pos:len(self.tracks)]
+                    self.old_tracks.remove(old_track)
+                    self.voice.stop()
+                    break
 
             if self.onerepeat:
                 continue
-            if self.repeat:
+            elif self.repeat:
                 self.trackindex += 1
             else:
+                if self.goback:
+                    self.goback = False
+                    continue
+
                 try:
                     self.tracks.remove(track)
-                    self.old_track = track
+                    self.old_tracks.append(track)
                 except ValueError:
                     pass
                 continue
@@ -118,26 +125,27 @@ class AudioController:
         if self.isplaying():
             self.voice.pause()
 
+            self.lyrics_shown = False
             embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
             await self.message.edit(embed=embed)
 
     async def resume(self):
         if self.ispaused():
             self.voice.resume()
-            embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
-            await self.message.edit(embed=embed)
+            await self.display_normal()
 
     async def skip(self):
-        if len(self.tracks) > 0:
+        if len(self.tracks) > 1:
             self.skipper = True
             return True
         else:
             return False
 
     async def back(self):
-        if self.old_track:
+        if self.old_tracks:
             self.goback = True
             return True
+
         else:
             return False
 
@@ -151,6 +159,7 @@ class AudioController:
             self.repeat = False
 
         self.onerepeat = False
+        self.lyrics_shown = False
 
         embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
         await self.message.edit(embed=embed)
@@ -162,6 +171,7 @@ class AudioController:
             self.onerepeat = False
 
         self.repeat = False
+        self.lyrics_shown = False
 
         embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
         await self.message.edit(embed=embed)
@@ -177,6 +187,8 @@ class AudioController:
         await self.message.edit(embed=embed)
 
     async def display_queue(self):
+        self.lyrics_shown = False
+
         embed = overviewembed(self.tracks, self.current, self.bot)
         await self.message.edit(embed=embed)
 

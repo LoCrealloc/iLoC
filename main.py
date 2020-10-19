@@ -1,27 +1,21 @@
 import json
 from discord.ext.commands import Bot, errors, Context
-from discord.ext import tasks
 from apikeys import TOKEN
 from data import joinmessage
-from discord import Status, Game, Message, Guild
+from discord import Message, Guild
 from cogs.information import Information
 from cogs.settings import Settings
 from cogs.music import Music
 from utilities import get_custom_prefix, register_cogs, send_warning
+from errors import WrongChannelError, NotConnectedError
 
 
-bot = Bot(command_prefix=get_custom_prefix)
+bot = Bot(command_prefix=get_custom_prefix, case_insensitive=True)
 
 
 @bot.event
 async def on_ready():
     print(f"Bot has logged in as {bot.user.display_name} successfully!")
-
-
-@tasks.loop(minutes=30)
-async def presence():
-    activity: Game = Game(name=f"auf {len(bot.guilds)} Servern")
-    await bot.change_presence(activity=activity, status=Status.online)
 
 
 @bot.event
@@ -40,8 +34,12 @@ async def on_message(message: Message):
 
                     await message.delete()
 
-                    if message.startswith(await bot.command_prefix(bot, message) + "help"):
-                        await send_warning(message.channel, "Please use another channel for the help command!")
+                    prefix = str(await bot.command_prefix(bot, message))
+
+                    if message.content.startswith(prefix + "help") or message.content.startswith(prefix + "settings"):
+
+                        await send_warning(message.channel, "Please use another channel for the help or settings "
+                                                            "command!")
                         return
 
             except KeyError:
@@ -95,7 +93,7 @@ async def on_guild_remove(guild: Guild):
             guilddict = {"guilds": []}
             json.dump(guilddict, guildfile)
 
-"""
+
 @bot.event
 async def on_command_error(ctx: Context, error: errors.CommandError):
     if isinstance(error, errors.MissingRequiredArgument):
@@ -109,17 +107,25 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
 
     elif isinstance(error, errors.CommandNotFound):
         await ctx.channel.send("This command doesn't exist!")
+
+    elif isinstance(error, NotConnectedError):
+        await send_warning(ctx.channel, "```You have to be connected to a voice channel to use this command!```")
+
+    elif isinstance(error, WrongChannelError):
+        await send_warning(ctx.channel, f"```Please use only the music channel specified for this "
+                                        f"server for music commands! Set a music channel using "
+                                        f"{await bot.command_prefix(bot, ctx.message)}channel [channel]!```")
     
     elif isinstance(error, errors.CheckFailure):
-        await send_warning(ctx.channel, f"Please use only the music channel specified for this "
-                                        f"server for music commands! Set a music channel using "
-                                        f"{await bot.command_prefix(bot, ctx.message)}channel [channel]!"
-                                        f"You must be connected to a voice channel to use this command!")
+        await send_warning(ctx.channel, f"Other check failure: {error}")
+    
+    elif isinstance(error, errors.NoPrivateMessage):
+        await ctx.author.send("This command cannot be used in direct messages!")
 
     else:
         print(error)
         await ctx.channel.send(f"ERROR! For an overview, type {await bot.command_prefix(bot, ctx.message)}help!")
-"""
+
 
 register_cogs(bot, [Information, Settings, Music])
 

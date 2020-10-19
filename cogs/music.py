@@ -1,11 +1,11 @@
 from discord.ext.commands import Cog, command, Bot, Context, guild_only, check, group
-from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction
+from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction, Invite
 from utilities import get_url, get_video_list, send_warning
 import json
 from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, \
                  shufflereact, ejectreact, lyricreact, blackheart, redheart, num_reacts, num_meanings
 from audio import AudioController
-from errors import NoVideoError, BrokenConnectionError, WronReactError
+from errors import NoVideoError, BrokenConnectionError, WrongReactError, WrongChannelError, NotConnectedError
 from embedcreator import listembed, playlistembed
 from asyncio import TimeoutError
 from utilities import save_favourites, load_favourites, get_title
@@ -37,7 +37,7 @@ async def check_channel(ctx: Context):
         return True
     else:
         await ctx.message.delete()
-        return False
+        raise WrongChannelError
 
 
 @check
@@ -46,7 +46,10 @@ async def is_connected(ctx: Context):
     Function to check whether a user is currently connected to a voice channel
     """
 
-    return True if ctx.author.voice else False
+    if ctx.author.voice:
+        return True
+    else:
+        raise NotConnectedError
 
 
 class Music(Cog):
@@ -208,14 +211,10 @@ class Music(Cog):
         Add songs to your playlist with playlist add (songs) or by  reacting with a heart when they are currently played
         """
 
-    @playlist.command(name="show", aliases=["display"])
-    async def playlist_show(self, ctx: Context):
-        """
-        Watch the tracks you have saved to your playlist
-        """
-        favourites = load_favourites(ctx.author.id)
-        embed = playlistembed(favourites, ctx.author)
-        await ctx.author.send(embed=embed)
+        if ctx.invoked_subcommand is None:
+            favourites = load_favourites(ctx.author.id)
+            embed = playlistembed(favourites, ctx.author)
+            await ctx.author.send(embed=embed)
 
     @playlist.command(name="clear", aliases=["delete"])
     async def playlist_clear(self, ctx: Context):
@@ -251,6 +250,8 @@ class Music(Cog):
 
     @playlist.command(name="play", aliases=["start"])
     @guild_only()
+    @check_channel
+    @is_connected
     async def playlist_play(self, ctx: Context):
         favourites = load_favourites(ctx.author.id)
 
@@ -326,6 +327,8 @@ class Music(Cog):
 
                     elif reaction.emoji.name == ejectreact:
                         await controller.remove_from_queue(controller.current)
+                        if not await controller.skip():
+                            await controller.stop()
 
                     elif reaction.emoji.name == lyricreact:
                         if not controller.lyrics_shown:
@@ -364,9 +367,11 @@ class Music(Cog):
                                                "```This song is not saved in your playlist yet!```")
 
                 else:
+                    invite: Invite = await controller.channel.create_invite(max_age=120)
+
                     await send_warning(self.bot.get_channel(reaction.channel_id),
                                        f"```You have to be connected to the voice channel the bot is "
-                                       f"connected to ({controller.channel})```")
+                                       f"connected to for controlling the bot!```\n{invite.url}")
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):

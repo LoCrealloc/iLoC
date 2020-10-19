@@ -20,13 +20,23 @@ async def infoembed(bot: Bot, message):
     return embed
 
 
+def settingsembed(bot: Bot, prefix: str):
+    embed = Embed(title="Settings",
+                  description="You can edit the bots preferences by using the commands below!",
+                  color=color)
+    embed.set_author(name=bot.user.display_name, icon_url=bot.user.avatar_url)
+    embed.add_field(name=f"{prefix}settings prefix", value="Change the bots prefix")
+    embed.add_field(name=f"{prefix}settings channel", value="Set the channel where to control the bot!")
+    embed.set_footer(text=manual_url)
+
+    return embed
+
+
 def prefixembed(ctx: Context, prefix: str):
     embed = Embed(title="Prefix changed",
                   description="The prefix for the iLoC has been changed",
                   color=color)
-
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-
     embed.add_field(name="New Prefix", value=prefix)
 
     return embed
@@ -34,7 +44,7 @@ def prefixembed(ctx: Context, prefix: str):
 
 def channelembed(channel: TextChannel, author: Member):
     embed = Embed(title="Channel changed",
-                  description="The channel where you can control the bot's msuic functions has been changed",
+                  description="The channel where you can control the bots music functions has been changed",
                   color=color)
 
     embed.set_author(name=author.display_name, icon_url=author.avatar_url)
@@ -141,7 +151,7 @@ def lyricembed(track, lyrics: str, lyric_url: str):
                   description=newlyrics if len(lyrics) <= 2048 else newlyrics + "\n[...]",
                   color=color)
 
-    embed.set_author(name=requester.display_name, url="https://genius.com", icon_url=requester.avatar_url)
+    embed.set_author(name=requester.display_name, icon_url=requester.avatar_url)
     embed.set_thumbnail(url=video.thumb)
     embed.set_footer(text="Lyrics provided by https://genius.com")
 
