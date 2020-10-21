@@ -69,7 +69,7 @@ class Music(Cog):
                                                 "connected to!```")
                 return
 
-        except IndexError:
+        except (IndexError, AttributeError):
             # Der Bot tritt einem Kanal bei, falls er noch mit keinem verbunden ist
             try:
                 voice = await ctx.author.voice.channel.connect()
@@ -155,7 +155,7 @@ class Music(Cog):
             if not self.bot.user == user:
 
                 if not str(reaction.emoji) in num_reacts:
-                    raise WronReactError
+                    raise WrongReactError
                 return reaction.message.id == message.id and user.id == ctx.author.id
             else:
                 return False
