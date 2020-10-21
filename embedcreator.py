@@ -1,5 +1,5 @@
 from discord.ext.commands import Bot, Context
-from discord import Embed, TextChannel, Member
+from discord import Embed, TextChannel, Member, Invite
 from data import color, manual_url, version, features, loc_mention
 from textwrap import TextWrapper
 
@@ -38,6 +38,19 @@ def prefixembed(ctx: Context, prefix: str):
                   color=color)
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
     embed.add_field(name="New Prefix", value=prefix)
+
+    return embed
+
+
+def notinchannelembed(author: Member, invite: Invite):
+    embed = Embed(title="Please connect to the bots channel",
+                  description="The bot is connected to a channel you are not connected to! "
+                              "Please connect to this channel to control the bot!",
+                  color=color)
+
+    embed.set_author(name=author.display_name, icon_url=author.avatar_url)
+
+    embed.add_field(name="Invite", value=invite.url)
 
     return embed
 

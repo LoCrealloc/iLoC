@@ -1,5 +1,6 @@
-from discord import Message, TextChannel
+from discord import Message, TextChannel, Embed
 from discord.ext.commands import Bot
+from discord.errors import NotFound
 import json
 from data import default_prefix
 from apikeys import GOOGLEKEY, GENIUSKEY
@@ -81,7 +82,19 @@ async def get_video_list(title: str):
 async def send_warning(channel: TextChannel, message: str):
     delmessage = await channel.send(message)
     await sleep(7)
-    await delmessage.delete()
+    try:
+        await delmessage.delete()
+    except NotFound:
+        pass
+
+
+async def send_warning_embed(channel: TextChannel, embed: Embed):
+    delmessage = await channel.send(embed=embed)
+    await sleep(7)
+    try:
+        await delmessage.delete()
+    except NotFound:
+        pass
 
 
 def load_dict():

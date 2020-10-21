@@ -1,14 +1,14 @@
 from discord.ext.commands import Cog, command, Bot, Context, guild_only, check, group
 from discord import Message, TextChannel, VoiceClient, RawReactionActionEvent, VoiceState, Member, Reaction, Invite
-from utilities import get_url, get_video_list, send_warning
+from utilities import get_url, get_video_list, send_warning, send_warning_embed, save_favourites, load_favourites, \
+                      get_title
 import json
 from data import togglepausereact, stopreact, skipreact, backreact, loopreact, oneloopreact, \
                  shufflereact, ejectreact, lyricreact, blackheart, redheart, num_reacts, num_meanings
 from audio import AudioController
 from errors import NoVideoError, BrokenConnectionError, WrongReactError, WrongChannelError, NotConnectedError
-from embedcreator import listembed, playlistembed
+from embedcreator import listembed, playlistembed, notinchannelembed
 from asyncio import TimeoutError
-from utilities import save_favourites, load_favourites, get_title
 
 
 @check
@@ -369,9 +369,10 @@ class Music(Cog):
                 else:
                     invite: Invite = await controller.channel.create_invite(max_age=120)
 
-                    await send_warning(self.bot.get_channel(reaction.channel_id),
-                                       f"```You have to be connected to the voice channel the bot is "
-                                       f"connected to for controlling the bot!```\n{invite.url}")
+                    embed = notinchannelembed(reaction.member, invite)
+
+                    await send_warning_embed(self.bot.get_channel(reaction.channel_id),
+                                             embed)
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
