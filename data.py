@@ -5,7 +5,8 @@ repository_url = "https://github.com/LoCrealloc/iLoC"
 
 version = "0.1.0"
 
-features = ["Create voice channels", "Play audio from YouTube", "Display currently playing track in an embed"]
+features = ["Create voice channels", "Play audio from YouTube", "Display currently playing track in an embed",
+            "Search for lyrics on genius", "Save tracks in a personalized playlist"]
 
 loc_mention = "<@!519559136237715486>"
 
