@@ -1,6 +1,6 @@
 from discord.ext.commands import Bot, Context
 from discord import Embed, TextChannel, Member, Invite
-from data import color, manual_url, version, features, loc_mention
+from data import color, repository_url, version, features, loc_mention
 from textwrap import TextWrapper
 
 
@@ -8,11 +8,11 @@ async def infoembed(bot: Bot, message):
     embed = Embed(title="iLoC",
                   description="The most advanced Discord music bot",
                   color=color,
-                  url=manual_url)
+                  url=repository_url)
     embed.set_thumbnail(url=bot.user.avatar_url)
     embed.add_field(name="Features", value="\n".join(f"- {feature}" for feature in features), inline=False)
     embed.add_field(name="Version", value=version, inline=True)
-    embed.add_field(name="Manual", value=manual_url, inline=True)
+    embed.add_field(name="GitHub", value=repository_url, inline=True)
     embed.add_field(name="Help-Command", value=f"{await bot.command_prefix(bot, message)}help", inline=False)
     embed.add_field(name="Developer", value=f"This Discord bot is developed by {loc_mention}! Please tell me any "
                                              f"issues on GitHub or via DM", inline=False)
@@ -27,7 +27,7 @@ def settingsembed(bot: Bot, prefix: str):
     embed.set_author(name=bot.user.display_name, icon_url=bot.user.avatar_url)
     embed.add_field(name=f"{prefix}settings prefix", value="Change the bots prefix")
     embed.add_field(name=f"{prefix}settings channel", value="Set the channel where to control the bot!")
-    embed.set_footer(text=manual_url)
+    embed.set_footer(text=repository_url)
 
     return embed
 

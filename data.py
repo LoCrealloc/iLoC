@@ -16,9 +16,6 @@ joinmessage = f"Use the help-command *{default_prefix}help* to find out how to s
               f"where you can play music from!"
 
 
-manual_url = "COMING SOON!"
-
-
 togglepausereact = "⏯"
 
 
