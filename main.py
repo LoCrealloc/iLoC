@@ -114,7 +114,7 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
     elif isinstance(error, WrongChannelError):
         await send_warning(ctx.channel, f"```Please use only the music channel specified for this "
                                         f"server for music commands! Set a music channel using "
-                                        f"{await bot.command_prefix(bot, ctx.message)}channel [channel]!```")
+                                        f"{await bot.command_prefix(bot, ctx.message)}settings channel [channel]!```")
     
     elif isinstance(error, errors.CheckFailure):
         await send_warning(ctx.channel, f"Other check failure: {error}")
@@ -124,7 +124,7 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
 
     else:
         print(error)
-        await ctx.channel.send(f"ERROR! For an overview, type {await bot.command_prefix(bot, ctx.message)}help!")
+        await send_warning(ctx.channel, f"ERROR! For an overview, type {await bot.command_prefix(bot, ctx.message)}help!")
 
 
 register_cogs(bot, [Information, Settings, Music])
