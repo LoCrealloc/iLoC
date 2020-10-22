@@ -377,8 +377,12 @@ class Music(Cog):
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         if member == self.bot.user:
+            guild_id = before.channel.guild.id
+            controller = self.controllers[str(guild_id)]
+
             if after.channel is None:
-                guild_id = before.channel.guild.id
-                controller = self.controllers[str(guild_id)]
                 del controller
                 del self.controllers[str(guild_id)]
+
+            else:
+                controller.channel = after.channel
