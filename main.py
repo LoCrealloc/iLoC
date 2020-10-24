@@ -37,10 +37,11 @@ async def on_message(message: Message):
                     prefix = str(await bot.command_prefix(bot, message))
 
                     if message.content.startswith(prefix + "help") or message.content.startswith(prefix + "settings") \
-                                                                   or message.content.startswith(prefix + "info"):
+                                                                   or message.content.startswith(prefix + "info") \
+                                                                   or message.content.startswith(prefix + "ping"):
 
-                        await send_warning(message.channel, "Please use another channel for the help or settings "
-                                                            "command!")
+                        await send_warning(message.channel, "Please use another channel for the help, settings, "
+                                                            "ping or information command!")
                         return
 
             except KeyError:
