@@ -97,3 +97,16 @@ class Settings(Cog):
             await self.bot.change_presence(activity=activity, status=Status.online)
         except AttributeError:
             pass
+
+    @tasks.loop(minutes=15)
+    async def save_guilds(self):
+        """
+        Task to save all guilds the bot is connected to in a file
+        """
+        try:
+            with open("guilds.txt", "w") as guildfile:
+                for guild in self.bot.guilds:
+                    guildfile.write(guild.name)
+
+        except AttributeError:
+            pass
