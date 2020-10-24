@@ -382,7 +382,10 @@ class Music(Cog):
             except AttributeError:
                 guild_id = after.channel.guild.id
 
-            controller = self.controllers[str(guild_id)]
+            try:
+                controller = self.controllers[str(guild_id)]
+            except KeyError:
+                return
 
             if after.channel is None:
                 del controller
