@@ -14,7 +14,7 @@ class Information(Cog):
         latency = str(self.bot.latency * 100).split(".")[0]
         await ctx.channel.send(f"Pong! {latency} ms")
 
-    @command(name="info", aliases=["infos", "about"])
+    @command(name="info", aliases=["infos", "about", "information"])
     async def info(self, ctx: Context):
         """
         Gives you some information about the iLoC
