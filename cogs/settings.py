@@ -11,6 +11,7 @@ class Settings(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.presence.start()
+        self.save_guilds.start()
 
     @group(name="settings", aliases=["preferences", "set"])
     async def settings(self, ctx: Context):
