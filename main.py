@@ -105,7 +105,7 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
         await ctx.channel.send("Your parameter's value was invalid!")
 
     elif isinstance(error, errors.MissingPermissions):
-        await ctx.channel.send("You have no permission to use this command")
+        await ctx.channel.send("You have not permission to use this command")
 
     elif isinstance(error, errors.CommandNotFound):
         await ctx.channel.send("This command doesn't exist!")
@@ -126,7 +126,8 @@ async def on_command_error(ctx: Context, error: errors.CommandError):
 
     else:
         print(error)
-        await send_warning(ctx.channel, f"ERROR! For an overview, type {await bot.command_prefix(bot, ctx.message)}help!")
+        await send_warning(ctx.channel, f"ERROR! For an overview, type "
+                                        f"{await bot.command_prefix(bot, ctx.message)}help")
 
 
 register_cogs(bot, [Information, Settings, Music])
