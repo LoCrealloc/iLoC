@@ -2,6 +2,8 @@ from discord import VoiceChannel, Message, FFmpegPCMAudio, PCMVolumeTransformer,
 from discord.errors import ClientException
 from discord.ext.commands import Bot
 import pafy
+from typing import List
+
 from embedcreator import musicembed, songembed, overviewembed, lyricembed
 from random import shuffle
 from errors import NoVideoError, BrokenConnectionError
@@ -38,13 +40,13 @@ class AudioController:
         else:
             return False
 
-    def ispaused(self):
+    def ispaused(self) -> bool:
         if self.voice.is_paused():
             return True
         else:
             return False
 
-    def islooping(self):
+    def islooping(self) -> bool:
         if self.repeat:
             return True
         elif self.onerepeat:
@@ -52,7 +54,7 @@ class AudioController:
         else:
             return False
 
-    def connected_users(self):
+    def connected_users(self) -> List[Member]:
         return self.channel.members
 
     async def play(self):
@@ -134,14 +136,14 @@ class AudioController:
             self.voice.resume()
             await self.display_normal()
 
-    async def skip(self):
+    async def skip(self) -> bool:
         if len(self.tracks) > 1:
             self.skipper = True
             return True
         else:
             return False
 
-    async def back(self):
+    async def back(self) -> bool:
         if self.old_tracks:
             self.goback = True
             return True
@@ -151,7 +153,7 @@ class AudioController:
 
     async def loop(self):
         """
-        Lässt den Bot die aktuelle Playlist wiederholen
+        Let the bot repeat the current track
         """
         if not self.repeat:
             self.repeat = True
