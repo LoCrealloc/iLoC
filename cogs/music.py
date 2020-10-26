@@ -157,6 +157,7 @@ class Music(Cog):
                 if not str(reaction.emoji) in num_reacts:
                     raise WrongReactError
                 return reaction.message.id == message.id and user.id == ctx.author.id
+
             else:
                 return False
 
