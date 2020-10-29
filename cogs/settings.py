@@ -107,7 +107,7 @@ class Settings(Cog):
         try:
             with open("guilds.txt", "w") as guildfile:
                 for guild in self.bot.guilds:
-                    guildfile.write(guild.name)
+                    guildfile.write(guild.name + "\n")
 
         except AttributeError:
             pass
