@@ -199,12 +199,36 @@ class Music(Cog):
         if ctx.message.channel.id == controller.message.channel.id:
             await controller.display_queue()
         else:
-            print(controller.message.id)
-            print(ctx.message.id)
 
             await send_warning(ctx.channel, f"```Please use only the channel specified for this bot "
                                             f"({controller.message.channel.mention}) for music commands```")
             await ctx.message.delete()
+
+    @group(name="lyrics", aliases=["text"])
+    @guild_only()
+    @check_channel
+    async def lyrics(self, ctx: Context):
+        """
+        Display the current songs lyrics
+        """
+        if ctx.invoked_subcommand is None:
+            try:
+                controller: AudioController = self.controllers[str(ctx.guild.id)]
+            except KeyError:
+                return
+
+            if ctx.author in controller.connected_users():
+                if not controller.lyrics_shown:
+                    await controller.display_lyrics()
+                else:
+                    await controller.display_normal()
+
+    @lyrics.command(name="translate")
+    async def lyrics_translate(self, ctx: Context, language: str):
+        """
+        Translate the current songs lyrics to the provided language
+        """
+        
 
     @group(name="playlist", aliases=["pl", "tracklist", "favourites"])
     async def playlist(self, ctx: Context):
