@@ -1,0 +1,10 @@
+discord
+pafy
+youtube-dl
+requests
+beautifulsoup4
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+pynacl

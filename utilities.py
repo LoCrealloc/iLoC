@@ -142,6 +142,10 @@ async def save_favourites(user_id: int, favourites: list):
 def get_rating(video_url):
     rating = namedtuple("Rating", ["likes", "dislikes"])
 
+    """
+    
+    Youtube has changed something here, I need to fix that...
+    
     res = requests.get(url=video_url)
 
     plain = res.text
@@ -151,6 +155,9 @@ def get_rating(video_url):
 
     dislikes = plain.split('{"iconType":"DISLIKE"},"defaultText":{"accessibility":{"accessibilityData":'
                                  '{"label":"')[1].split("\xa0")[0]
+    """
+    likes = "None"
+    dislikes = "None"
 
     data = rating(likes, dislikes)
 

@@ -58,8 +58,8 @@ class AudioController:
         return self.channel.members
 
     async def play(self):
-        while self.tracks and len(self.connected_users()) > 1:
 
+        while self.tracks and len(self.connected_users()) > 1:
             try:
                 track = self.tracks[self.trackindex]
                 song = track.song
@@ -213,6 +213,7 @@ class AudioController:
         self.lyrics_shown = False
 
         embed = songembed(self.current, self.channel, self.islooping(), self.ispaused())
+
         await self.message.edit(embed=embed)
 
     async def add_to_queue(self, song, requester, term):
