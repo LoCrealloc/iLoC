@@ -2,7 +2,7 @@ import json
 from discord.ext.commands import Bot, errors, Context
 from apikeys import TOKEN
 from data import joinmessage
-from discord import Message, Guild
+from discord import Message, Guild, Intents
 from cogs.information import Information
 from cogs.settings import Settings
 from cogs.music import Music
@@ -10,7 +10,9 @@ from utilities import get_custom_prefix, register_cogs, send_warning
 from errors import WrongChannelError, NotConnectedError
 
 
-bot = Bot(command_prefix=get_custom_prefix, case_insensitive=True)
+intents = Intents.all()
+
+bot = Bot(command_prefix=get_custom_prefix, case_insensitive=True, intents=intents)
 
 
 @bot.event
@@ -20,7 +22,6 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: Message):
-
     if not message.author == bot.user:
 
         try:
