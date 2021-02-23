@@ -128,8 +128,8 @@ def songembed(track, channel, loop, paused):
     embed.add_field(name="Creator", value=video.author, inline=True)
     embed.add_field(name="Length", value=f"{video.length} seconds", inline=True)
     embed.add_field(name="Views", value=video.viewcount, inline=True)
-    embed.add_field(name="Likes", value=f"{rating.likes} 👍", inline=True)
-    embed.add_field(name="Dislikes", value=f"{rating.dislikes} 👎", inline=True)
+    embed.add_field(name="Likes", value=f"{video.likes} 👍", inline=True)
+    embed.add_field(name="Dislikes", value=f"{video.dislikes} 👎", inline=True)
 
     embed.set_footer(text="The most advanced music bot")
 
